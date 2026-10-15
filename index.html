@@ -1,0 +1,2338 @@
+<title>Enzyme Practice Set</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a lab-bench worksheet. Question card on the left, tutor feedback column on the right; stacks on phones. A segmented progress strip records each result. */
+:root {
+  --bg: #edf2f1;
+  --surface: #ffffff;
+  --sunk: #f5f8f7;
+  --ink: #14262b;
+  --muted: #56696e;
+  --line: #d2dedc;
+  --accent: #1c6676;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcedf0;
+  --good: #1f7449;
+  --good-bg: #e2f2e8;
+  --bad: #b1372e;
+  --bad-bg: #fbe8e5;
+  --hint: #8d600c;
+  --hint-bg: #fbf0d9;
+  --paper: #ffffff;
+  --paper-ink: #14262b;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e191c; --surface: #162428; --sunk: #12201f; --ink: #e2eceb; --muted: #9bb0b2; --line: #2a3e42;
+    --accent: #63b8c8; --accent-ink: #08181b; --accent-soft: #1b3940;
+    --good: #72d09d; --good-bg: #163226; --bad: #f08d81; --bad-bg: #3b201c; --hint: #e6b85e; --hint-bg: #352a13;
+    --paper: #f3f6f5; --paper-ink: #14262b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e191c; --surface: #162428; --sunk: #12201f; --ink: #e2eceb; --muted: #9bb0b2; --line: #2a3e42;
+  --accent: #63b8c8; --accent-ink: #08181b; --accent-soft: #1b3940;
+  --good: #72d09d; --good-bg: #163226; --bad: #f08d81; --bad-bg: #3b201c; --hint: #e6b85e; --hint-bg: #352a13;
+  --paper: #f3f6f5; --paper-ink: #14262b; color-scheme: dark;
+}
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; display: flex; flex-direction: column; gap: 18px; }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3.2vw, 32px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; letter-spacing: -.01em; }
+.scorebox { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip strong { color: var(--ink); font-weight: 500; }
+
+/* Progress strip */
+.strip { display: flex; gap: 3px; }
+.strip span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.strip span.now { background: var(--accent); }
+.strip span.first { background: var(--good); }
+.strip span.help { background: var(--hint); }
+.strip span.miss { background: var(--bad); }
+
+/* Main grid */
+.grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; min-width: 0; }
+@media (max-width: 520px) { .card { padding: 14px; } .tbl th, .tbl td { padding: 6px 8px; } .stem { font-size: 17px; } }
+.qcard { display: flex; flex-direction: column; gap: 16px; }
+.qhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.stage { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+.stage.step { background: var(--hint-bg); color: var(--hint); }
+.stage.retry { background: var(--accent); color: var(--accent-ink); }
+.topic { font-size: 13px; color: var(--muted); }
+.trail { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+.trail b { font-weight: 500; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); }
+.trail b.done { border-color: transparent; background: var(--sunk); text-decoration: line-through; text-decoration-color: var(--muted); }
+.trail b.on { border-color: var(--hint); color: var(--hint); }
+.trail i { font-style: normal; opacity: .6; }
+
+/* Figures */
+.fig { margin: 0; background: var(--paper); color: var(--paper-ink); border-radius: 8px; border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.fig img { display: block; max-width: 100%; height: auto; image-rendering: auto; }
+.fig img.small { width: 340px; }
+.fig-cap { margin: 0; font-size: 13px; color: #4f6166; text-align: center; }
+.tbl { overflow-x: auto; max-width: 100%; align-self: stretch; }
+.tbl table { border-collapse: collapse; margin: 0 auto; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--paper-ink); }
+.fig .rg, .fig .rg b { color: var(--paper-ink); }
+.tbl th, .tbl td { padding: 6px 12px; border-bottom: 1px solid #d8e1df; text-align: left; vertical-align: top; }
+.tbl thead th { font-weight: 700; font-size: 13px; background: #e7eff0; }
+.tbl tbody th { font-weight: 700; }
+.tbl .num { text-align: right; }
+.tbl tr.grp th, .tbl tr.grp td { border-top: 2px solid #b9c9c7; }
+.rg { display: flex; justify-content: center; gap: clamp(20px, 6vw, 56px); padding: 8px 0 4px; font-size: 17px; }
+.rg-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-height: 128px; }
+.rg-col i { display: block; width: 2px; height: 16px; background: #14262b; margin: 2px 0; }
+.rg-col b { margin-top: 8px; font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+
+.stem { font-size: 18px; line-height: 1.5; margin: 0; max-width: 68ch; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color .15s, background-color .15s; }
+.opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.opt:disabled { cursor: default; }
+.opt .k { width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; font-family: var(--font-mono); font-weight: 500; background: var(--sunk); border: 1px solid var(--line); }
+.opt .mark { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.opt.right { border-color: var(--good); background: var(--good-bg); }
+.opt.right .k { background: var(--good); color: var(--surface); border-color: var(--good); }
+.opt.right .mark { color: var(--good); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.opt.wrong .k { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.opt.wrong .mark { color: var(--bad); }
+.opt.dim { opacity: .55; }
+.keys { font-size: 13px; color: var(--muted); margin: 0; }
+@media (hover: none) { .keys { display: none; } }
+
+/* Tutor */
+.tutor { display: flex; flex-direction: column; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 860px) { .tutor { position: static; } }
+.tutor h2 { font-family: var(--font-display); font-weight: 700; font-size: 19px; margin: 0; }
+.log { display: flex; flex-direction: column; gap: 10px; }
+.msg { border-radius: 8px; padding: 12px 14px; background: var(--sunk); border: 1px solid var(--line); }
+.msg h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.msg p { margin: 0; }
+.msg p + p { margin-top: 6px; }
+.msg.good { background: var(--good-bg); border-color: transparent; }
+.msg.good h3 { color: var(--good); }
+.msg.bad { background: var(--bad-bg); border-color: transparent; }
+.msg.bad h3 { color: var(--bad); }
+.msg.hint { background: var(--hint-bg); border-color: transparent; }
+.msg.hint h3 { color: var(--hint); }
+.msg.idle { color: var(--muted); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 700; border: 0; border-radius: 8px; padding: 11px 20px; cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+/* Start + end */
+.intro { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 18px; }
+@media (max-width: 860px) { .intro { grid-template-columns: minmax(0, 1fr); } }
+.intro p { margin: 0 0 10px; max-width: 64ch; }
+.how { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: how; }
+.how li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; counter-increment: how; }
+.how li::before { content: counter(how); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-mono); font-size: 13px; background: var(--accent-soft); color: var(--accent); }
+.marks { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; font-size: 14px; align-items: center; }
+.sw { width: 22px; height: 8px; border-radius: 3px; }
+.big { font-family: var(--font-display); font-weight: 700; font-size: clamp(44px, 7vw, 64px); line-height: 1; font-variant-numeric: tabular-nums; }
+.big small { font-size: .45em; color: var(--muted); font-weight: 500; }
+.tally { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tally div { border-radius: 8px; padding: 10px 12px; background: var(--sunk); }
+.tally b { display: block; font-family: var(--font-display); font-size: 26px; font-variant-numeric: tabular-nums; }
+.tally span { font-size: 13px; color: var(--muted); }
+.tally .t1 b { color: var(--good); } .tally .t2 b { color: var(--hint); } .tally .t3 b { color: var(--bad); }
+.topics { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.topics th, .topics td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+.topics td.n, .topics th.n { text-align: right; }
+.review { display: flex; flex-direction: column; gap: 8px; }
+.review details { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); }
+.review summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+.review summary::marker { color: var(--muted); }
+.review .tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+.tag.help { background: var(--hint-bg); color: var(--hint); }
+.tag.miss { background: var(--bad-bg); color: var(--bad); }
+.review .ans { margin: 8px 0 4px; font-weight: 700; }
+.review p { margin: 0; }
+h2.sec { font-family: var(--font-display); font-weight: 700; font-size: 20px; margin: 0 0 10px; }
+.note { font-size: 13px; color: var(--muted); }
+.linkbtn { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">AS Biology · Enzymes</div>
+      <h1>Enzyme practice set</h1>
+    </div>
+    <div class="scorebox" id="scorebox" hidden>
+      <span class="chip">Question <strong id="qpos">1</strong> of <strong id="qtot">1</strong></span>
+      <span class="chip">Score <strong id="score">0</strong></span>
+    </div>
+  </header>
+  <div class="strip" id="strip" hidden></div>
+  <main id="app"></main>
+</div>
+
+<script>
+const FIGS = {};
+const QUESTIONS = [
+ {
+  "id": "p01",
+  "topic": "Rate and saturation",
+  "q": "The rate of an enzyme-catalysed reaction is a measure of how",
+  "o": [
+   "often the reaction happens in a cell",
+   "quickly substrate is converted into product",
+   "much energy must be added for the reaction to happen",
+   "easily the reaction is inhibited"
+  ],
+  "a": 1,
+  "w": {
+   "0": "'How often' is about frequency, not speed. Rate is how much product forms (or substrate is used) per unit time.",
+   "2": "That describes activation energy, not rate.",
+   "3": "Inhibition can change the rate, but it isn't what 'rate' means."
+  },
+  "x": "Rate is the change in the amount of substrate or product per unit time, for example cm³ of oxygen released per minute.",
+  "s": [
+   {
+    "q": "Which of these is a unit of rate?",
+    "o": [
+     "°C above room temperature",
+     "cm³ of gas per minute",
+     "kJ of energy per mol",
+     "grams of enzyme added"
+    ],
+    "a": 1,
+    "x": "A rate always includes 'per unit time'."
+   }
+  ]
+ },
+ {
+  "id": "p02",
+  "topic": "Activation energy",
+  "q": "What is the name for the unstable, high-energy arrangement that forms as substrates react at the active site?",
+  "o": [
+   "Ground state",
+   "Transition state",
+   "Activation energy",
+   "Enzyme–product complex"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The ground state is the stable starting state of the reactants.",
+   "2": "Activation energy is the energy needed to reach this arrangement, not the arrangement itself.",
+   "3": "The enzyme–product complex forms after the reaction, just before the products are released."
+  },
+  "x": "The transition state sits at the top of the energy hump. Enzymes stabilise it, which lowers the activation energy.",
+  "s": [
+   {
+    "q": "On an energy diagram, where is the transition state?",
+    "o": [
+     "At the starting level",
+     "At the top of the hump",
+     "At the products level",
+     "Below the products"
+    ],
+    "a": 1,
+    "x": "It is the highest-energy point on the reaction pathway."
+   }
+  ]
+ },
+ {
+  "id": "p03",
+  "topic": "Activation energy",
+  "q": "At a given temperature, which factor most directly decides how fast a reaction goes?",
+  "o": [
+   "The overall free-energy change (ΔG)",
+   "The activation energy",
+   "The change in entropy",
+   "Whether the reaction releases energy"
+  ],
+  "a": 1,
+  "w": {
+   "0": "ΔG tells you whether a reaction can happen, not how fast. A reaction with a very negative ΔG can still be extremely slow.",
+   "2": "Entropy affects whether a reaction is favourable, not its speed.",
+   "3": "Energy-releasing reactions can still be very slow without a catalyst."
+  },
+  "x": "The higher the activation energy, the fewer molecules have enough energy to react, so the slower the reaction. That is why lowering Ea speeds reactions up.",
+  "s": [
+   {
+    "q": "Burning wood releases a lot of energy, yet a log doesn't catch fire by itself. Why not?",
+    "o": [
+     "Burning wood has a positive ΔG",
+     "Its activation energy is high",
+     "Wood stores no chemical energy",
+     "Oxygen inhibits the reaction"
+    ],
+    "a": 1,
+    "x": "A favourable reaction can still have a large energy barrier. The barrier controls the speed."
+   }
+  ]
+ },
+ {
+  "id": "p04",
+  "topic": "Enzyme basics",
+  "q": "Which statement about enzymes is true?",
+  "o": [
+   "They are used up in the reaction they catalyse",
+   "They are unchanged by the reaction and can be reused",
+   "They raise the activation energy so reactions go faster",
+   "They are rarely regulated, so they work all the time"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Enzymes are catalysts. They come out of the reaction unchanged.",
+   "2": "They lower activation energy. That is how they speed reactions up.",
+   "3": "Enzyme activity is tightly controlled, for example by inhibitors and feedback."
+  },
+  "x": "Enzymes are biological catalysts. They speed up reactions and are released unchanged, so one enzyme molecule can be used many times.",
+  "s": [
+   {
+    "q": "What is a catalyst?",
+    "o": [
+     "A substance used up to supply energy",
+     "It speeds up a reaction but isn't used up",
+     "A product formed at the end of a reaction",
+     "A substance that slows reactions down"
+    ],
+    "a": 1,
+    "x": "A catalyst is recovered unchanged at the end of the reaction."
+   }
+  ]
+ },
+ {
+  "id": "p05",
+  "topic": "Enzyme basics",
+  "q": "Which statement about enzymes is false?",
+  "o": [
+   "An enzyme can change shape slightly when its substrate binds",
+   "Enzymes lower the activation energy",
+   "Most enzymes are much smaller than their substrates",
+   "Enzymes are highly specific"
+  ],
+  "a": 2,
+  "w": {
+   "0": "That one is true: it is induced fit.",
+   "1": "That one is true: lowering Ea is how enzymes work.",
+   "3": "That one is true: each enzyme catalyses one reaction or a small group of similar reactions."
+  },
+  "x": "Most enzymes are large proteins, much bigger than their substrates. Only a small region, the active site, contacts the substrate.",
+  "s": [
+   {
+    "q": "Which part of an enzyme binds the substrate?",
+    "o": [
+     "The whole surface of the enzyme",
+     "A small pocket, the active site",
+     "The enzyme's primary structure",
+     "The peptide bonds along its chain"
+    ],
+    "a": 1,
+    "x": "The active site is a small pocket or groove. The rest of the protein holds it in the right shape."
+   }
+  ]
+ },
+ {
+  "id": "p06",
+  "topic": "Active site and specificity",
+  "q": "Trypsin and elastase both hydrolyse peptide bonds, but trypsin only cuts next to lysine and elastase only next to alanine. Why?",
+  "o": [
+   "Trypsin is a protein but elastase is an RNA molecule",
+   "The two reactions have different ΔG values",
+   "Their active sites differ in shape and charge",
+   "Only one of the two reactions needs water to happen"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Both are enzymes, and both are proteins.",
+   "1": "ΔG doesn't decide which bonds an enzyme can bind.",
+   "3": "Hydrolysis always uses water, and both reactions are hydrolysis."
+  },
+  "x": "Specificity comes from the active site. Trypsin's site fits lysine's long, positively charged side chain; elastase's smaller site fits alanine's small side chain.",
+  "s": [
+   {
+    "q": "What gives an enzyme its specificity?",
+    "o": [
+     "Its overall size and mass",
+     "The shape of its active site",
+     "Its optimum temperature",
+     "The number of subunits it has"
+    ],
+    "a": 1,
+    "x": "Only substrates complementary to the active site's shape and charge can bind."
+   }
+  ]
+ },
+ {
+  "id": "p07",
+  "topic": "Active site and specificity",
+  "q": "An active site is",
+  "o": [
+   "the part of the substrate that binds to the enzyme",
+   "the region of the enzyme that binds the substrate",
+   "the place in the cell where enzymes are made",
+   "the site where energy is added to an enzyme"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The active site is on the enzyme, not the substrate.",
+   "2": "Enzymes are made at ribosomes. The active site is part of the enzyme molecule.",
+   "3": "Enzymes don't need energy added. They lower the energy barrier."
+  },
+  "x": "The active site is a pocket formed by a few amino acids of the folded enzyme. The substrate binds and reacts there.",
+  "s": [
+   {
+    "q": "Which level of protein structure gives the active site its 3D shape?",
+    "o": [
+     "Primary structure only",
+     "Tertiary structure",
+     "Its peptide bonds alone",
+     "None: it's a separate molecule"
+    ],
+    "a": 1,
+    "x": "Folding brings amino acids from different parts of the chain together to form the pocket."
+   }
+  ]
+ },
+ {
+  "id": "p08",
+  "topic": "Active site and specificity",
+  "q": "The active site of an enzyme",
+  "o": [
+   "never changes shape",
+   "decides the enzyme's specificity through its shape",
+   "is a lump that sticks out from the enzyme's surface",
+   "changes the ΔG of the reaction"
+  ],
+  "a": 1,
+  "w": {
+   "0": "It can change shape slightly as the substrate binds (induced fit).",
+   "2": "It is usually a pocket or groove in the enzyme.",
+   "3": "Enzymes don't change ΔG. They only lower the activation energy."
+  },
+  "x": "The shape and chemistry of the active site decide which substrate can bind, so they give the enzyme its specificity.",
+  "s": [
+   {
+    "q": "What is induced fit?",
+    "o": [
+     "The active site moulds around the substrate",
+     "The substrate is broken up before it binds",
+     "The enzyme is permanently changed by binding",
+     "Two enzyme molecules join to fit the substrate"
+    ],
+    "a": 0,
+    "x": "The active site moulds around the substrate, then returns to its original shape after the products leave."
+   }
+  ]
+ },
+ {
+  "id": "p09",
+  "topic": "Active site and specificity",
+  "q": "How is a substrate usually held in an enzyme's active site?",
+  "o": [
+   "By permanent covalent bonds to the enzyme",
+   "By hydrogen bonds to the surrounding water",
+   "By hydrophobic interactions only, never charges",
+   "By several weak bonds, e.g. hydrogen and ionic"
+  ],
+  "a": 3,
+  "w": {
+   "0": "Permanent covalent bonds would stop the products leaving. Binding is mostly by weak interactions, though some enzymes form a brief covalent bond during catalysis.",
+   "1": "The substrate is held by R groups in the active site, not by water.",
+   "2": "Charged R groups in the active site can form ionic bonds with the substrate, so charge does matter."
+  },
+  "x": "Substrates are held by several weak interactions at once, from different R groups in the active site. Some enzymes also form a brief covalent bond with the substrate during catalysis.",
+  "s": [
+   {
+    "q": "Which R groups in an active site can form ionic bonds with a substrate?",
+    "o": [
+     "Non-polar ones, like –CH₃",
+     "Charged ones, like –COO⁻",
+     "Any group that contains carbon",
+     "Hydrophobic ones, like –C₆H₅"
+    ],
+    "a": 1,
+    "x": "Opposite charges attract, so charged R groups can hold charged parts of the substrate."
+   }
+  ]
+ },
+ {
+  "id": "p10",
+  "topic": "Enzyme basics",
+  "q": "The molecules that an enzyme acts on are called",
+  "o": [
+   "products",
+   "substrates",
+   "cofactors",
+   "inhibitors"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Products are what the reaction makes.",
+   "2": "Cofactors help the enzyme work. The enzyme doesn't convert them.",
+   "3": "Inhibitors slow the enzyme down."
+  },
+  "x": "Substrates bind to the active site and are converted into products.",
+  "s": [
+   {
+    "q": "Catalase catalyses 2H₂O₂ → 2H₂O + O₂. What is the substrate?",
+    "o": [
+     "H₂O",
+     "O₂",
+     "H₂O₂",
+     "Catalase"
+    ],
+    "a": 2,
+    "x": "The substrate is what the enzyme acts on: the left-hand side of the equation."
+   }
+  ]
+ },
+ {
+  "id": "p11",
+  "topic": "Activation energy",
+  "q": "Sucrase speeds up the breakdown of sucrose into glucose and fructose. It does this by",
+  "o": [
+   "increasing the free energy released",
+   "lowering the activation energy",
+   "supplying energy to the reaction",
+   "changing the position of equilibrium"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The free energy released (ΔG) is the same with or without the enzyme.",
+   "2": "Enzymes don't supply energy. They reduce the energy needed.",
+   "3": "Enzymes help a reaction reach equilibrium faster, but they don't change where the equilibrium lies."
+  },
+  "x": "Sucrase binds sucrose and strains its glycosidic bond. This lowers the activation energy, so hydrolysis happens much faster at body temperature.",
+  "s": [
+   {
+    "q": "Which of these does an enzyme NOT change?",
+    "o": [
+     "The activation energy",
+     "The rate of reaction",
+     "The overall energy change (ΔG)",
+     "The time taken to reach equilibrium"
+    ],
+    "a": 2,
+    "x": "An enzyme changes the route, not the start and end points, so ΔG stays the same."
+   }
+  ]
+ },
+ {
+  "id": "p12",
+  "topic": "Activation energy",
+  "q": "Enzymes lower the _______ of a reaction.",
+  "o": [
+   "ΔG",
+   "activation energy",
+   "equilibrium constant",
+   "final amount of product"
+  ],
+  "a": 1,
+  "w": {
+   "0": "ΔG is set by the reactants and products, and enzymes don't change it.",
+   "2": "Enzymes don't shift the equilibrium. They help it be reached faster.",
+   "3": "Given enough time, the same amount of product forms with or without the enzyme. It just forms faster with it."
+  },
+  "x": "Enzymes lower the activation energy, so the reaction is faster. Everything about the start and end points stays the same.",
+  "s": [
+   {
+    "q": "A reaction is left until it stops, once with an enzyme and once without. What is different?",
+    "o": [
+     "The amount of product made",
+     "How fast the product is made",
+     "The energy the reaction releases",
+     "The type of product formed"
+    ],
+    "a": 1,
+    "x": "Enzymes affect speed only."
+   }
+  ]
+ },
+ {
+  "id": "p13",
+  "topic": "Enzyme basics",
+  "q": "Glyceraldehyde 3-phosphate dehydrogenase converts glyceraldehyde 3-phosphate into 1,3-bisphosphoglycerate. When glyceraldehyde 3-phosphate binds to the enzyme, it forms",
+  "o": [
+   "a transition state",
+   "an enzyme–substrate complex",
+   "an activation energy barrier",
+   "an enzyme–product complex"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The transition state is the unstable point partway through the reaction, after binding.",
+   "2": "The energy barrier is the activation energy, not a molecule.",
+   "3": "An enzyme–product complex forms after the reaction has happened, not when the substrate first binds."
+  },
+  "x": "Whatever the enzyme is called, enzyme + substrate → enzyme–substrate complex. This is the first step of every enzyme-catalysed reaction.",
+  "s": [
+   {
+    "q": "Which sequence is correct?",
+    "o": [
+     "E + S → ES → EP → E + P",
+     "E + P → EP → ES → E + S",
+     "E + S → EP → ES → E + P",
+     "E + S → E + P → ES → EP"
+    ],
+    "a": 0,
+    "x": "Enzyme and substrate form an ES complex, which becomes an EP complex. The products are released and the enzyme is free to work again."
+   }
+  ]
+ },
+ {
+  "id": "p14",
+  "topic": "Activation energy",
+  "q": "In an enzyme-catalysed reaction, the enzyme can",
+  "o": [
+   "be permanently changed",
+   "put strain on bonds in the substrate",
+   "make the rate fall as substrate concentration rises",
+   "leave the substrate unchanged"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Enzymes are released unchanged at the end of the reaction.",
+   "2": "Rate rises with substrate concentration until saturation, then levels off. It doesn't fall.",
+   "3": "The substrate is converted into product, so it does change."
+  },
+  "x": "Binding can stretch or bend bonds in the substrate, making them easier to break. This is one way enzymes lower activation energy.",
+  "s": [
+   {
+    "q": "Why does stretching a bond help it break?",
+    "o": [
+     "It makes the bond less stable and easier to break",
+     "Stretching the bond heats the substrate up",
+     "Stretched bonds turn into stronger covalent bonds",
+     "It makes the substrate molecule bigger"
+    ],
+    "a": 0,
+    "x": "Distorting a bond moves the substrate closer to the transition state, so the remaining barrier is smaller."
+   }
+  ]
+ },
+ {
+  "id": "p15",
+  "topic": "Active site and specificity",
+  "q": "'Enzymes are highly specific' means that",
+  "o": [
+   "each type of enzyme is found only in certain types of cell",
+   "each enzyme works on only one substrate or a few similar ones",
+   "each enzyme needs one exact concentration of substrate to work",
+   "enzymes are matched to reactions by their activation energy"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Where an enzyme is found isn't specificity. Many enzymes are found in all cells.",
+   "2": "Enzymes work across a range of substrate concentrations.",
+   "3": "Specificity comes from shape matching, not energy levels."
+  },
+  "x": "Each enzyme's active site fits only its own substrate or substrates. Amylase acts on starch but not on protein, for example.",
+  "s": [
+   {
+    "q": "Amylase digests starch but not protein. What explains this?",
+    "o": [
+     "Protein molecules are too big to fit",
+     "Only starch fits its active site",
+     "Protein molecules inhibit amylase",
+     "Amylase only works in the mouth"
+    ],
+    "a": 1,
+    "x": "The active site's shape fits starch, not protein."
+   }
+  ]
+ },
+ {
+  "id": "p16",
+  "topic": "Active site and specificity",
+  "q": "Which of these contributes to the specificity of enzymes?",
+  "o": [
+   "Each enzyme is active over a wide range of temperatures",
+   "Each active site can bind many different substrates",
+   "The right substrate can mould the active site to fit it",
+   "Enzymes are always more active at higher temperatures"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Temperature range has nothing to do with which substrate binds.",
+   "1": "That would make an enzyme less specific, not more.",
+   "3": "That is about rate, not which substrate fits, and it isn't true above the optimum."
+  },
+  "x": "In induced fit, the right substrate makes the active site mould closely around it. A wrong molecule can't produce this precise fit.",
+  "s": [
+   {
+    "q": "How does the induced-fit model differ from the lock-and-key model?",
+    "o": [
+     "In induced fit, the active site is rigid",
+     "In induced fit, the active site can adjust",
+     "In induced fit, any substrate can bind",
+     "In induced fit, the substrate changes shape only"
+    ],
+    "a": 1,
+    "x": "Lock-and-key treats the active site as rigid. Induced fit says it adjusts around the correct substrate."
+   }
+  ]
+ },
+ {
+  "id": "p17",
+  "topic": "Enzyme basics",
+  "q": "Which of the following is an enzyme?",
+  "o": [
+   "Copper",
+   "Haem",
+   "Catalase",
+   "Hydrogen peroxide"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Copper is a metal ion. It can act as a cofactor, but it isn't an enzyme.",
+   "1": "Haem is a non-protein group bound to proteins such as haemoglobin and catalase.",
+   "3": "Hydrogen peroxide is the substrate of catalase."
+  },
+  "x": "Catalase is an enzyme that breaks hydrogen peroxide down into water and oxygen. Many enzyme names end in '-ase'.",
+  "s": [
+   {
+    "q": "Which naming clue usually shows that a molecule is an enzyme?",
+    "o": [
+     "It ends in '-ose'",
+     "It ends in '-ase'",
+     "It ends in '-ide'",
+     "It starts with 'poly-'"
+    ],
+    "a": 1,
+    "x": "'-ase' marks enzymes (amylase, lipase, catalase). '-ose' marks sugars."
+   }
+  ]
+ },
+ {
+  "id": "p18",
+  "topic": "Active site and specificity",
+  "q": "During glucose phosphorylation, hexokinase folds around glucose and ATP, shutting water out of the active site. This change in hexokinase is an example of",
+  "o": [
+   "substrate saturation",
+   "induced fit",
+   "denaturation",
+   "competitive inhibition"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Saturation is when all the active sites are occupied.",
+   "2": "Denaturation is a permanent loss of shape that stops the enzyme working.",
+   "3": "No inhibitor is involved. The substrates themselves cause the change."
+  },
+  "x": "Hexokinase changes shape as its substrates bind, closing around them. It is a textbook example of induced fit.",
+  "s": [
+   {
+    "q": "Which change in an enzyme is temporary and part of normal catalysis?",
+    "o": [
+     "Denaturation",
+     "Induced fit",
+     "Loss of quaternary structure",
+     "Hydrolysis of peptide bonds"
+    ],
+    "a": 1,
+    "x": "Induced fit is reversible: the enzyme returns to its original shape after the products are released."
+   }
+  ]
+ },
+ {
+  "id": "p19",
+  "topic": "Active site and specificity",
+  "q": "Glucose oxidase binds glucose but cannot bind mannose, another 6-carbon sugar. This specificity depends on",
+  "o": [
+   "the free energy of the transition state",
+   "the activation energy of the reaction",
+   "the 3D shape of the active site",
+   "the ΔG of the reaction"
+  ],
+  "a": 2,
+  "w": {
+   "0": "The transition state only forms after the substrate has bound.",
+   "1": "Activation energy affects how fast the reaction goes after binding, not which molecule binds.",
+   "3": "ΔG concerns the energy released, not which molecule fits."
+  },
+  "x": "Glucose and mannose differ only in the arrangement around one carbon atom, but that is enough to stop mannose fitting the active site.",
+  "s": [
+   {
+    "q": "Glucose and mannose have the same formula. Why can they behave differently with an enzyme?",
+    "o": [
+     "Their atoms are arranged differently",
+     "They have different molecular masses",
+     "One of them contains nitrogen",
+     "They don't behave any differently"
+    ],
+    "a": 0,
+    "x": "Same atoms, different shape. Enzymes respond to shape."
+   }
+  ]
+ },
+ {
+  "id": "p20",
+  "topic": "Inhibitors",
+  "q": "Enzyme C converts A into B. All of the following would increase the rate EXCEPT",
+  "o": [
+   "increasing the concentration of enzyme C in the mixture",
+   "raising the temperature up to the optimum",
+   "increasing the concentration of A, if not saturated",
+   "adding D, which competes with A for the active site"
+  ],
+  "a": 3,
+  "w": {
+   "0": "More enzyme means more active sites, so the rate rises.",
+   "1": "Up to the optimum, a higher temperature means more collisions, so the rate rises.",
+   "2": "Below saturation, more substrate means more collisions, so the rate rises."
+  },
+  "x": "D is a competitive inhibitor. It occupies active sites, so fewer are free for A, and the rate falls.",
+  "s": [
+   {
+    "q": "What does a competitive inhibitor compete with?",
+    "o": [
+     "The product",
+     "The substrate",
+     "The enzyme",
+     "Water"
+    ],
+    "a": 1,
+    "x": "It is similar in shape to the substrate and occupies the active site."
+   }
+  ]
+ },
+ {
+  "id": "p21",
+  "topic": "Activation energy",
+  "q": "Which statement about enzymes is false?",
+  "o": [
+   "Enzymes are not used up, so can be used again and again",
+   "Enzymes lower the activation energy of a reaction",
+   "Each enzyme only acts on one or a few substrates",
+   "Enzymes can change ΔG from positive to negative"
+  ],
+  "a": 3,
+  "w": {
+   "0": "That one is true: enzymes can be used again and again.",
+   "1": "That one is true: it is how enzymes work.",
+   "2": "That one is true: each active site fits particular substrates."
+  },
+  "x": "An enzyme can't change ΔG, so it can't make an energy-requiring (endergonic) reaction energy-releasing (exergonic). Cells drive energy-requiring reactions by coupling them to energy-releasing ones such as ATP hydrolysis.",
+  "s": [
+   {
+    "q": "Which of these does an enzyme change?",
+    "o": [
+     "ΔG",
+     "Activation energy",
+     "The energy of the reactants",
+     "The energy of the products"
+    ],
+    "a": 1,
+    "x": "Only Ea. The energy levels at the start and end stay the same."
+   }
+  ]
+ },
+ {
+  "id": "p22",
+  "topic": "Rate and saturation",
+  "q": "An enzyme reaction is said to be 'saturated'. Which result would confirm this?",
+  "o": [
+   "Adding more substrate does not increase the rate",
+   "Adding more substrate increases the rate",
+   "Adding a competitive inhibitor decreases the rate",
+   "Adding more enzyme does not change the rate"
+  ],
+  "a": 0,
+  "w": {
+   "1": "If more substrate speeds it up, some active sites must have been free, so it wasn't saturated.",
+   "2": "A competitive inhibitor lowers the rate whether or not the enzyme is saturated, so it doesn't test saturation.",
+   "3": "At saturation, enzyme is the limiting factor, so adding more enzyme should increase the rate."
+  },
+  "x": "'Saturated' means every active site is occupied. Extra substrate has nowhere to bind, so the rate doesn't change.",
+  "s": [
+   {
+    "q": "When an enzyme is saturated, what is limiting the rate?",
+    "o": [
+     "Substrate concentration",
+     "Enzyme concentration",
+     "Product concentration",
+     "The volume of water"
+    ],
+    "a": 1,
+    "x": "Substrate is in excess, so enzyme is the limiting factor."
+   }
+  ]
+ },
+ {
+  "id": "p23",
+  "topic": "Rate and saturation",
+  "q": "With alcohol dehydrogenase present, the rate of acetaldehyde reduction rises as acetaldehyde concentration increases, then reaches a maximum. Why does it stop rising?",
+  "o": [
+   "All the enzyme molecules are bound to acetaldehyde",
+   "The activation energy rises at high concentrations",
+   "The enzyme is no longer specific",
+   "ΔG falls at high concentrations"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Substrate concentration doesn't change the activation energy.",
+   "2": "Specificity is a fixed property of the active site's shape.",
+   "3": "ΔG doesn't control rate, so it can't explain the levelling off."
+  },
+  "x": "Once every active site is occupied, extra substrate has to wait its turn. The enzyme is working at its maximum rate (Vmax).",
+  "s": [
+   {
+    "q": "What does Vmax represent?",
+    "o": [
+     "The rate when all the active sites are occupied",
+     "The rate with no substrate",
+     "The temperature of maximum activity",
+     "The highest possible substrate concentration"
+    ],
+    "a": 0,
+    "x": "Vmax is the maximum rate, reached at saturation."
+   }
+  ]
+ },
+ {
+  "id": "p24",
+  "topic": "Rate and saturation",
+  "q": "Enzyme reactions become saturated as substrate concentration increases because",
+  "o": [
+   "the substrate concentration can't rise any further",
+   "substrates start to act as inhibitors at high levels",
+   "there is a limited number of active sites",
+   "the activation energy can't be lowered any further"
+  ],
+  "a": 2,
+  "w": {
+   "0": "You can keep adding substrate. The rate still won't rise.",
+   "1": "Substrates bind to active sites to be converted. They don't inhibit.",
+   "3": "Activation energy doesn't change with substrate concentration."
+  },
+  "x": "There is a fixed number of active sites. When they are all occupied, extra substrate can't be processed any faster.",
+  "s": [
+   {
+    "q": "At a very low substrate concentration, doubling the substrate concentration will",
+    "o": [
+     "roughly double the rate",
+     "have no effect on the rate",
+     "halve the rate of reaction",
+     "denature the enzyme"
+    ],
+    "a": 0,
+    "x": "At low concentration most active sites are free, so substrate is the limiting factor and the rate rises steeply."
+   }
+  ]
+ },
+ {
+  "id": "p25",
+  "topic": "Inhibitors",
+  "q": "A non-competitive inhibitor reduces substrate binding by",
+  "o": [
+   "binding to the substrate so it can't reach the enzyme",
+   "binding to the active site in place of the substrate",
+   "binding elsewhere, changing the active site's shape",
+   "raising the activation energy of the reaction"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Inhibitors bind to the enzyme, not to the substrate.",
+   "1": "Binding the active site is what a competitive inhibitor does.",
+   "3": "Inhibitors stop the substrate binding or reacting. They don't work by changing the reaction's energy barrier."
+  },
+  "x": "A non-competitive inhibitor binds at a different site. This changes the enzyme's shape, so the active site no longer fits the substrate well.",
+  "s": [
+   {
+    "q": "Where does a non-competitive inhibitor bind?",
+    "o": [
+     "In the active site itself",
+     "Elsewhere on the enzyme",
+     "On the product",
+     "On the substrate"
+    ],
+    "a": 1,
+    "x": "It doesn't compete for the active site, which is why adding more substrate can't overcome it."
+   }
+  ]
+ },
+ {
+  "id": "p26",
+  "topic": "Inhibitors",
+  "q": "Which type of inhibition can be overcome by adding more substrate?",
+  "o": [
+   "Irreversible",
+   "Non-competitive",
+   "Competitive",
+   "All types"
+  ],
+  "a": 2,
+  "w": {
+   "0": "An irreversible inhibitor is permanently bonded, so substrate can't displace it.",
+   "1": "Non-competitive inhibitors bind away from the active site, so more substrate doesn't help.",
+   "3": "Only one type depends on competition for the active site."
+  },
+  "x": "In competitive inhibition, substrate and inhibitor compete for the same site. With more substrate, substrate molecules win the active site more often, so the inhibitor's effect is diluted.",
+  "s": [
+   {
+    "q": "Substrate and a competitive inhibitor are present at equal concentrations. You then add ten times more substrate. What happens to the proportion of active sites occupied by inhibitor?",
+    "o": [
+     "It increases",
+     "It decreases",
+     "It stays the same",
+     "It instantly becomes zero"
+    ],
+    "a": 1,
+    "x": "Collisions with substrate become much more likely than collisions with inhibitor."
+   }
+  ]
+ },
+ {
+  "id": "p27",
+  "topic": "Inhibitors",
+  "q": "How do competitive and non-competitive inhibitors differ?",
+  "o": [
+   "Only competitive inhibitors bind the active site",
+   "Competitive inhibitors have a higher activation energy",
+   "Only non-competitive inhibitors are affected by pH",
+   "Only non-competitive inhibitors are irreversible"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Inhibitors don't have an activation energy. Reactions do.",
+   "2": "pH can affect either type. What defines them is where they bind.",
+   "3": "Both types can be reversible. What distinguishes them is where they bind."
+  },
+  "x": "The difference is the binding site. Competitive: the active site (similar shape to the substrate). Non-competitive: another site, which changes the active site's shape.",
+  "s": [
+   {
+    "q": "What does a competitive inhibitor usually have in common with the substrate?",
+    "o": [
+     "A similar shape",
+     "The same size as the enzyme",
+     "The same charge as the enzyme",
+     "Nothing"
+    ],
+    "a": 0,
+    "x": "It is similar enough in shape to fit the active site, but isn't converted into product (or only slowly)."
+   }
+  ]
+ },
+ {
+  "id": "p28",
+  "topic": "Inhibitors",
+  "q": "A competitive inhibitor of an enzyme-catalysed reaction",
+  "o": [
+   "inhibits to the same extent at all substrate concentrations",
+   "is usually similar in structure to the substrate",
+   "cannot bind to the active site",
+   "binds to an allosteric site"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Its effect gets smaller as substrate concentration rises.",
+   "2": "It does bind the active site. That is how it competes.",
+   "3": "Binding at an allosteric site is non-competitive."
+  },
+  "x": "It is similar in shape to the substrate, so it fits the active site and blocks it.",
+  "s": [
+   {
+    "q": "Malonate inhibits succinate dehydrogenase. Its shape is very similar to the enzyme's substrate, succinate. What type of inhibitor is it?",
+    "o": [
+     "Competitive",
+     "Non-competitive",
+     "An allosteric activator",
+     "A cofactor"
+    ],
+    "a": 0,
+    "x": "Similar shape to the substrate, so it competes for the active site."
+   }
+  ]
+ },
+ {
+  "id": "p29",
+  "topic": "Inhibitors",
+  "q": "The effect of a non-competitive inhibitor can be reduced",
+  "o": [
+   "by increasing the substrate concentration",
+   "by decreasing the substrate concentration",
+   "by adding a competitive inhibitor",
+   "only when the inhibitor leaves the enzyme"
+  ],
+  "a": 3,
+  "w": {
+   "0": "The inhibitor isn't in the active site, so more substrate can't push it out.",
+   "1": "Less substrate would lower the rate further.",
+   "2": "That would inhibit the enzyme even more."
+  },
+  "x": "Because it binds elsewhere, substrate can't displace it. Inhibition only falls when the inhibitor leaves, for example when its concentration falls.",
+  "s": [
+   {
+    "q": "Increasing substrate concentration overcomes competitive inhibition because",
+    "o": [
+     "substrate outcompetes the inhibitor",
+     "substrate breaks down the inhibitor",
+     "substrate changes the enzyme's shape",
+     "substrate lowers the reaction's ΔG"
+    ],
+    "a": 0,
+    "x": "That only works when both molecules compete for the same site, which isn't the case for non-competitive inhibitors."
+   }
+  ]
+ },
+ {
+  "id": "p30",
+  "topic": "Inhibitors",
+  "q": "An inhibitor that binds to the active site and cannot be removed without destroying the enzyme is called",
+  "o": [
+   "an irreversible inhibitor",
+   "a reversible inhibitor",
+   "an allosteric inhibitor",
+   "a competitive inhibitor"
+  ],
+  "a": 0,
+  "w": {
+   "1": "A reversible inhibitor can bind and come off again.",
+   "2": "Allosteric inhibitors bind away from the active site and are usually reversible.",
+   "3": "A competitive inhibitor binds the active site, but reversibly; more substrate can displace it."
+  },
+  "x": "Irreversible inhibitors usually form covalent bonds with the active site. Nerve agents and some drugs, such as aspirin, work this way.",
+  "s": [
+   {
+    "q": "What type of bond does an irreversible inhibitor usually form with the enzyme?",
+    "o": [
+     "Hydrogen bond",
+     "Covalent bond",
+     "Hydrophobic interaction",
+     "Ionic attraction that easily breaks"
+    ],
+    "a": 1,
+    "x": "Covalent bonds are strong and not easily broken."
+   }
+  ]
+ },
+ {
+  "id": "p31",
+  "topic": "Inhibitors",
+  "q": "An inhibitor that binds the active site is a(n) ___ inhibitor; one that binds a different site is a(n) ___ inhibitor. If both can bind and come off again, they are examples of ___ inhibition.",
+  "o": [
+   "competitive; non-competitive; reversible",
+   "non-competitive; competitive; reversible",
+   "competitive; non-competitive; irreversible",
+   "competitive; allosteric; irreversible"
+  ],
+  "a": 0,
+  "w": {
+   "1": "The first two names are swapped. Competing for the active site is competitive.",
+   "2": "If they can bind and come off, the inhibition is reversible, not irreversible.",
+   "3": "If they can bind and come off, the inhibition is reversible, not irreversible."
+  },
+  "x": "Competitive inhibitors bind the active site; non-competitive inhibitors bind elsewhere. Both are reversible if the inhibitor can leave.",
+  "s": [
+   {
+    "q": "In 'competitive inhibitor', what is the inhibitor competing with?",
+    "o": [
+     "The product",
+     "The substrate",
+     "Other enzymes",
+     "Water"
+    ],
+    "a": 1,
+    "x": "It competes with the substrate for the same active site."
+   }
+  ]
+ },
+ {
+  "id": "p32",
+  "topic": "Inhibitors",
+  "q": "Alcohol dehydrogenase (ADH) converts ethanol into acetaldehyde. It also converts methanol into toxic formaldehyde. People with methanol poisoning are given ethanol intravenously. How does this help?",
+  "o": [
+   "Ethanol binds elsewhere on ADH and changes its shape",
+   "Ethanol bonds permanently to ADH and destroys it",
+   "Ethanol competes with methanol for ADH's active site",
+   "Ethanol activates ADH so methanol is removed faster"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Ethanol is also a substrate of ADH, so it binds the active site, not a separate site.",
+   "1": "ADH processes ethanol normally. Ethanol doesn't destroy the enzyme.",
+   "3": "Breaking methanol down faster would make more toxic formaldehyde, the opposite of what is needed."
+  },
+  "x": "Ethanol and methanol are similar in shape and both fit ADH's active site. With lots of ethanol present, ADH mostly processes ethanol, so formaldehyde forms slowly and the methanol can be excreted.",
+  "s": [
+   {
+    "q": "Ethanol (CH₃CH₂OH) and methanol (CH₃OH) are both substrates of ADH. What does this tell you?",
+    "o": [
+     "Both fit ADH's active site",
+     "ADH isn't specific at all",
+     "Both are inhibitors",
+     "They bind to different enzymes"
+    ],
+    "a": 0,
+    "x": "Similar molecules can fit the same active site, so they compete for it."
+   },
+   {
+    "q": "Two substrates compete for one active site. You add a large excess of one of them. What happens to the conversion of the other?",
+    "o": [
+     "It speeds up",
+     "It slows down",
+     "It stops permanently",
+     "It doesn't change"
+    ],
+    "a": 1,
+    "x": "The excess substrate occupies most of the active sites."
+   }
+  ]
+ },
+ {
+  "id": "p33",
+  "topic": "Inhibitors",
+  "q": "Mevinolin is a competitive inhibitor of HMG-CoA reductase, which converts HMG-CoA into mevalonate. How could the effect of mevinolin be overcome?",
+  "o": [
+   "Add more mevalonate",
+   "Add more HMG-CoA",
+   "Lower the temperature",
+   "Add more mevinolin"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Mevalonate is the product. Adding product doesn't help the substrate compete.",
+   "2": "Lowering the temperature would slow the reaction further.",
+   "3": "More inhibitor means more inhibition."
+  },
+  "x": "HMG-CoA is the substrate. Adding more of it lets it outcompete mevinolin for the active site. Statins, the cholesterol-lowering drugs, work by inhibiting this enzyme.",
+  "s": [
+   {
+    "q": "In the reaction HMG-CoA → mevalonate, which is the substrate?",
+    "o": [
+     "Mevalonate",
+     "HMG-CoA",
+     "HMG-CoA reductase",
+     "Mevinolin"
+    ],
+    "a": 1,
+    "x": "The substrate is on the left of the arrow."
+   }
+  ]
+ },
+ {
+  "id": "p34",
+  "topic": "Inhibitors",
+  "q": "Ascorbic acid (vitamin C) inhibits catecholase, the enzyme that turns cut apples brown. If ascorbic acid is similar in size and shape to catechol, the enzyme's substrate, the inhibition is most likely",
+  "o": [
+   "competitive",
+   "non-competitive",
+   "allosteric",
+   "feedback"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Non-competitive inhibitors don't need to resemble the substrate. They bind elsewhere.",
+   "2": "Allosteric inhibitors bind elsewhere and don't need to resemble the substrate.",
+   "3": "Feedback inhibition is by the end product of the same pathway. Ascorbic acid isn't made by the browning pathway."
+  },
+  "x": "Similar shape to the substrate means it fits the active site, so this is competitive inhibition.",
+  "s": [
+   {
+    "q": "Which clue in a question usually points to competitive inhibition?",
+    "o": [
+     "The inhibitor is similar in shape to the substrate",
+     "The inhibitor is made at the end of the pathway",
+     "The inhibitor changes the pH",
+     "The inhibitor is a metal ion"
+    ],
+    "a": 0,
+    "x": "Similar shape means it can occupy the active site."
+   }
+  ]
+ },
+ {
+  "id": "p35",
+  "topic": "Temperature and pH",
+  "q": "Further studies show that ascorbic acid is NOT similar to catechol. Instead, the acidity of the ascorbic acid solution changes how catecholase folds. This is most likely",
+  "o": [
+   "competitive inhibition by ascorbic acid",
+   "denaturation caused by the change in pH",
+   "feedback inhibition by the end product",
+   "allosteric activation of catecholase"
+  ],
+  "a": 1,
+  "w": {
+   "0": "It doesn't resemble the substrate, so it isn't competing for the active site.",
+   "2": "Ascorbic acid isn't an end product of the browning pathway.",
+   "3": "The enzyme is being inhibited, not activated."
+  },
+  "x": "A change in pH alters the charges on R groups, breaking ionic and hydrogen bonds. The enzyme's 3D shape, including the active site, changes. This is denaturation, and it is why lemon juice stops cut apples browning.",
+  "s": [
+   {
+    "q": "How does a pH far from the optimum affect an enzyme?",
+    "o": [
+     "It changes R-group charges and the shape",
+     "It breaks the peptide bonds in the chain",
+     "It adds more substrate to the active site",
+     "It has no effect on proteins at all"
+    ],
+    "a": 0,
+    "x": "H⁺ ions change the charges on R groups, so the bonds that hold the shape break."
+   }
+  ]
+ },
+ {
+  "id": "p36",
+  "topic": "Active site and specificity",
+  "q": "When a substrate binds to the active site through non-covalent interactions, the binding is",
+  "o": [
+   "reversible",
+   "irreversible",
+   "non-competitive",
+   "allosteric"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Non-covalent interactions are weak, so they break easily.",
+   "2": "'Non-competitive' describes an inhibitor binding elsewhere, not substrate binding.",
+   "3": "'Allosteric' describes binding at a different site, not at the active site."
+  },
+  "x": "Hydrogen bonds, ionic attractions and hydrophobic interactions are weak, so the substrate (or the products) can leave. That frees the enzyme to work again.",
+  "s": [
+   {
+    "q": "Which of these is a non-covalent interaction?",
+    "o": [
+     "Peptide bond",
+     "Hydrogen bond",
+     "Disulfide bond",
+     "Glycosidic bond"
+    ],
+    "a": 1,
+    "x": "Hydrogen bonds are weak attractions, not shared electron pairs."
+   }
+  ]
+ },
+ {
+  "id": "p37",
+  "topic": "Regulation",
+  "q": "An allosteric inhibitor",
+  "o": [
+   "changes the shape of the substrate",
+   "changes the shape of the enzyme",
+   "increases the number of enzyme–substrate complexes",
+   "is always the product of the same reaction"
+  ],
+  "a": 1,
+  "w": {
+   "0": "It binds the enzyme, not the substrate.",
+   "2": "By reducing binding, it lowers the number of enzyme–substrate complexes.",
+   "3": "End products can be allosteric inhibitors (feedback inhibition), but not every allosteric inhibitor is a product."
+  },
+  "x": "It binds at an allosteric site away from the active site, changing the enzyme's shape so the active site works less well.",
+  "s": [
+   {
+    "q": "What does 'allosteric' mean?",
+    "o": [
+     "'Other site', away from the active site",
+     "'Same shape' as the enzyme's substrate",
+     "'Heat-stable' at high temperatures",
+     "'Permanently bound' to the enzyme"
+    ],
+    "a": 0,
+    "x": "Allo- means 'other', so an allosteric site is somewhere other than the active site."
+   }
+  ]
+ },
+ {
+  "id": "p38",
+  "topic": "Regulation",
+  "q": "Allosteric enzymes can switch between an active shape and an inactive shape. Allosteric inhibitors work by",
+  "o": [
+   "breaking down some of the enzyme molecules",
+   "shifting more enzyme into the inactive shape",
+   "reducing the amount of substrate available",
+   "shifting more enzyme into the active shape"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The inhibitor doesn't destroy enzyme molecules. It changes their shape.",
+   "2": "Inhibitors act on the enzyme, not on the supply of substrate.",
+   "3": "That would increase the rate, if anything."
+  },
+  "x": "By binding to and stabilising the inactive shape, the inhibitor shifts more of the enzyme into that form, so fewer molecules are available to catalyse.",
+  "s": [
+   {
+    "q": "If an inhibitor shifts the enzyme into an inactive form, what happens to the overall rate?",
+    "o": [
+     "It increases",
+     "It decreases",
+     "It stays the same",
+     "It doubles"
+    ],
+    "a": 1,
+    "x": "Fewer active enzyme molecules means fewer reactions per second."
+   }
+  ]
+ },
+ {
+  "id": "p39",
+  "topic": "Regulation",
+  "q": "Which statement about allosteric regulation is true?",
+  "o": [
+   "Allosteric sites must overlap with the active site",
+   "Allosteric regulators compete with the substrate",
+   "An allosteric site can be on a different subunit",
+   "Allosteric regulation can only inhibit enzymes"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Allosteric sites are separate from active sites. A shape change can travel through the protein.",
+   "1": "That describes competitive inhibition.",
+   "3": "There are allosteric activators as well as inhibitors."
+  },
+  "x": "Allosteric regulators bind at a different site. The resulting shape change can be passed through the protein, even to an active site on another subunit.",
+  "s": [
+   {
+    "q": "What can allosteric regulators do?",
+    "o": [
+     "Only inhibit enzymes",
+     "Only activate enzymes",
+     "Inhibit or activate",
+     "Neither inhibit nor activate"
+    ],
+    "a": 2,
+    "x": "Some stabilise the active shape (activators); others stabilise the inactive shape (inhibitors)."
+   }
+  ]
+ },
+ {
+  "id": "p40",
+  "topic": "Regulation",
+  "q": "An enzyme is inhibited by a kinase and activated by a phosphatase. What does this mean?",
+  "o": [
+   "The kinase adds a phosphate that inhibits it; the phosphatase removes it",
+   "The phosphatase adds a phosphate that inhibits it; the kinase removes it",
+   "The kinase releases free phosphate ions that block the active site",
+   "The kinase and phosphatase bind to two different active sites"
+  ],
+  "a": 0,
+  "w": {
+   "1": "That is the wrong way round. Kinases add phosphate groups; phosphatases remove them.",
+   "2": "A kinase attaches a phosphate group to the enzyme itself. It doesn't release free phosphate to block the active site.",
+   "3": "Kinases and phosphatases are separate enzymes that modify the target enzyme. They don't bind its active sites."
+  },
+  "x": "Kinases add a phosphate group (phosphorylation); phosphatases remove it. Adding a charged phosphate changes the enzyme's shape, which can switch it off. This is a quick way for cells to switch enzymes on and off.",
+  "s": [
+   {
+    "q": "What does a kinase do?",
+    "o": [
+     "Removes a phosphate group from a molecule",
+     "Adds a phosphate group to a molecule",
+     "Breaks peptide bonds",
+     "Adds water to a molecule"
+    ],
+    "a": 1,
+    "x": "Kinase: adds phosphate (usually from ATP). Phosphatase: removes phosphate."
+   }
+  ]
+ },
+ {
+  "id": "p41",
+  "topic": "Temperature and pH",
+  "q": "Enzymes are sensitive to temperature and pH because these factors",
+  "o": [
+   "raise the activation energy of the reaction",
+   "break bonds that hold the enzyme's shape",
+   "change the enzyme's amino acid sequence",
+   "change the size of the substrate molecules"
+  ],
+  "a": 1,
+  "w": {
+   "0": "They don't change Ea directly. They change the enzyme's shape.",
+   "2": "The primary structure (the amino acid sequence, held by peptide bonds) usually isn't affected.",
+   "3": "Temperature and pH don't change the size of the substrate."
+  },
+  "x": "An enzyme's 3D shape is held by weak bonds, mainly hydrogen and ionic bonds. Heat and pH changes disrupt these, so the active site changes shape and the substrate no longer fits.",
+  "s": [
+   {
+    "q": "Which bonds hold an enzyme's tertiary structure?",
+    "o": [
+     "Peptide bonds only",
+     "Hydrogen and ionic bonds",
+     "Glycosidic bonds only",
+     "Phosphodiester bonds only"
+    ],
+    "a": 1,
+    "x": "Mainly weak hydrogen and ionic bonds, plus hydrophobic interactions and a few covalent disulfide bridges."
+   }
+  ]
+ },
+ {
+  "id": "p42",
+  "topic": "Temperature and pH",
+  "q": "The temperature of an enzyme-catalysed reaction is raised from 40 °C to 70 °C. What happens to the rate?",
+  "o": [
+   "It keeps increasing, because particles move faster",
+   "It falls to zero because the enzyme denatures",
+   "It depends on the enzyme's optimum temperature",
+   "It decreases at first and then increases again"
+  ],
+  "a": 2,
+  "w": {
+   "0": "The rate can't rise forever. Eventually the enzyme denatures.",
+   "1": "That is true for many human enzymes, but enzymes from heat-loving bacteria have optima above 70 °C.",
+   "3": "Once an enzyme has denatured, more heat doesn't bring its activity back."
+  },
+  "x": "It depends on the enzyme. A human enzyme (optimum about 37 °C) would denature, but an enzyme from a hot-spring bacterium (optimum about 75 °C) would speed up. You need the optimum to predict.",
+  "s": [
+   {
+    "q": "Taq polymerase comes from bacteria in hot springs. What is its approximate optimum temperature?",
+    "o": [
+     "37 °C",
+     "72 °C",
+     "5 °C",
+     "The same as every other enzyme"
+    ],
+    "a": 1,
+    "x": "Organisms from hot environments have heat-stable enzymes."
+   }
+  ]
+ },
+ {
+  "id": "p43",
+  "topic": "Temperature and pH",
+  "q": "Which statement about temperature and enzymes is false?",
+  "o": [
+   "Raising the temperature may reduce enzyme activity",
+   "Raising the temperature may increase enzyme activity",
+   "Some enzymes are stable at the boiling point of water",
+   "All enzymes have the same optimum temperature"
+  ],
+  "a": 3,
+  "w": {
+   "0": "That one is true, above the optimum.",
+   "1": "That one is true, below the optimum.",
+   "2": "That one is true for enzymes from bacteria living in hot springs."
+  },
+  "x": "The optimum depends on the organism: about 37 °C for human enzymes, over 80 °C for some hot-spring bacteria, and much lower for Arctic species.",
+  "s": [
+   {
+    "fixed": true,
+    "q": "An enzyme from an Arctic fish is most likely to have an optimum temperature of about",
+    "o": [
+     "5 °C",
+     "37 °C",
+     "75 °C",
+     "100 °C"
+    ],
+    "a": 0,
+    "x": "An enzyme's optimum usually matches the conditions where the organism lives."
+   }
+  ]
+ },
+ {
+  "id": "p44",
+  "topic": "Rate and saturation",
+  "q": "You add substrate until the rate stops increasing. You then raise the temperature, and the rate increases further. What can you conclude?",
+  "o": [
+   "Raising the temperature activated an inhibitor",
+   "It was below the optimum temperature at first",
+   "The enzyme denatured, releasing more active sites",
+   "The reaction is controlled by feedback inhibition"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Activating an inhibitor would decrease the rate.",
+   "2": "Denaturation would decrease the rate.",
+   "3": "Nothing in this experiment involves an end product inhibiting the enzyme."
+  },
+  "x": "Vmax depends on conditions. You had reached the maximum rate for that temperature, but it was below the optimum, so warming made each active site work faster.",
+  "s": [
+   {
+    "q": "At saturation, what could still increase the rate?",
+    "o": [
+     "More substrate",
+     "A temperature nearer the optimum",
+     "A competitive inhibitor",
+     "Nothing: the rate is at its maximum"
+    ],
+    "a": 1,
+    "x": "Substrate is no longer limiting, but temperature and enzyme concentration still are."
+   }
+  ]
+ },
+ {
+  "id": "p45",
+  "topic": "Temperature and pH",
+  "q": "Heat speeds up chemical reactions in the lab. Why can't cells rely on heat to speed up their reactions?",
+  "o": [
+   "Heat isn't specific, and it would denature proteins",
+   "Cells can't produce any heat of their own",
+   "Reactions inside cells don't speed up when heated",
+   "Heat can't spread evenly through a cell's contents"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Cells do release heat during respiration. The problem is what a lot of heat would do.",
+   "2": "Reactions in cells follow the same chemistry as reactions in the lab.",
+   "3": "Even if heat could be spread evenly, it would still damage proteins and speed up every reaction at once."
+  },
+  "x": "Heat isn't specific: it would speed up every reaction at once, and high temperatures denature proteins, including enzymes. Enzymes speed up particular reactions at body temperature.",
+  "s": [
+   {
+    "q": "What is one advantage of enzymes over heat for speeding up reactions?",
+    "o": [
+     "Enzymes are specific and can be controlled",
+     "Enzymes produce extra energy for reactions",
+     "Enzymes work equally well at any temperature",
+     "Enzymes change the ΔG of reactions"
+    ],
+    "a": 0,
+    "x": "Different enzymes can be switched on or off, giving the cell control."
+   }
+  ]
+ },
+ {
+  "id": "p46",
+  "topic": "Temperature and pH",
+  "q": "A small change in which variable will usually have the biggest effect on an enzyme's activity?",
+  "o": [
+   "Air pressure",
+   "Temperature",
+   "Light level",
+   "Time of day"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Air pressure has little effect on reactions in solution.",
+   "2": "Light doesn't directly affect most enzymes.",
+   "3": "The time of day doesn't change the enzyme itself."
+  },
+  "x": "Even a few degrees changes collision rates, and close to the optimum it can start denaturation. That is why body temperature is so tightly controlled.",
+  "s": [
+   {
+    "q": "Below the optimum, roughly what happens to the rate of most enzyme reactions for each 10 °C rise?",
+    "o": [
+     "It roughly doubles",
+     "It halves",
+     "It doesn't change",
+     "It drops to zero"
+    ],
+    "a": 0,
+    "x": "This is the temperature coefficient: Q₁₀ is about 2."
+   }
+  ]
+ },
+ {
+  "id": "p47",
+  "topic": "Regulation",
+  "q": "Two or more enzymes that catalyse the same reaction but differ in amino acid sequence and properties are called",
+  "o": [
+   "isozymes",
+   "coenzymes",
+   "cofactors",
+   "allosteric enzymes"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Coenzymes are small organic molecules, often made from vitamins, that help enzymes work.",
+   "2": "Cofactors are non-protein helpers such as metal ions.",
+   "3": "Allosteric enzymes have a regulatory site. That doesn't mean there are different versions of them."
+  },
+  "x": "Isozymes (isoenzymes) let organisms carry out the same reaction under different conditions. Some fish, for example, make different isozymes in summer and winter.",
+  "s": [
+   {
+    "q": "A fish lives in a lake that changes from 5 °C in winter to 25 °C in summer. Why might it make isozymes?",
+    "o": [
+     "Different isozymes have different optima",
+     "Isozymes are cheaper for the fish to make",
+     "To change which reaction is catalysed",
+     "To make the reaction release more energy"
+    ],
+    "a": 0,
+    "x": "The same reaction can keep running efficiently as conditions change."
+   }
+  ]
+ },
+ {
+  "id": "p48",
+  "topic": "Temperature and pH",
+  "q": "Enzymes with _______ at the active site are most sensitive to changes in pH.",
+  "o": [
+   "non-polar side chains such as –CH₃",
+   "–NH₂ or –COOH side chains",
+   "small side chains such as –H",
+   "rigid side chains such as proline"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Non-polar groups don't gain or lose H⁺.",
+   "2": "–H can't gain or lose a proton.",
+   "3": "Rigidity doesn't affect whether a group gains or loses H⁺."
+  },
+  "x": "–NH₂ can gain H⁺ (becoming –NH₃⁺) and –COOH can lose H⁺ (becoming –COO⁻). A change in pH changes these charges, which affects ionic bonds and substrate binding at the active site.",
+  "s": [
+   {
+    "q": "At low pH (high H⁺ concentration), an –NH₂ group tends to become",
+    "o": [
+     "–NH₃⁺",
+     "–NH⁻",
+     "–NO₂",
+     "It doesn't change"
+    ],
+    "a": 0,
+    "x": "Excess H⁺ ions are picked up by amino groups."
+   }
+  ]
+ },
+ {
+  "id": "p49",
+  "topic": "Temperature and pH",
+  "q": "Which enzymes are most likely to keep working as the temperature rises from 22 °C to 75 °C? Enzymes isolated from",
+  "o": [
+   "Bacteria from hot springs",
+   "Fish from temperate lakes",
+   "Mammals' intestines",
+   "Shrimp from the Arctic Ocean"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Fish in temperate lakes rarely experience temperatures above about 25 °C.",
+   "2": "Mammal enzymes have an optimum near 37 °C and denature well before 75 °C.",
+   "3": "Arctic species have cold-adapted enzymes, which denature at fairly low temperatures."
+  },
+  "x": "Bacteria from hot springs live at high temperatures. Their enzymes have extra stabilising bonds (for example more disulfide and ionic bonds) that keep their shape.",
+  "s": [
+   {
+    "q": "Which feature would make an enzyme more heat-stable?",
+    "o": [
+     "More disulfide bonds",
+     "Fewer bonds of any kind",
+     "A smaller active site",
+     "More water inside it"
+    ],
+    "a": 0,
+    "x": "Covalent disulfide bridges don't break as easily as hydrogen bonds."
+   }
+  ]
+ },
+ {
+  "id": "p50",
+  "topic": "Temperature and pH",
+  "fixed": true,
+  "q": "A newly discovered organism lives in acidic volcanic pools that stay above 90 °C and often reach 100 °C. At which temperature is its surface enzyme most likely to work best?",
+  "o": [
+   "37 °C",
+   "55 °C",
+   "95 °C",
+   "110 °C"
+  ],
+  "a": 2,
+  "w": {
+   "0": "37 °C is human body temperature. This organism lives far above that.",
+   "1": "55 °C is too low for an organism that lives above 90 °C.",
+   "3": "The pools never go above about 100 °C, so the enzyme isn't adapted to 110 °C."
+  },
+  "x": "Enzymes are adapted to the organism's environment, so the optimum is likely to be in the range where it lives: 90–100 °C.",
+  "s": [
+   {
+    "q": "An enzyme's optimum temperature usually matches",
+    "o": [
+     "where the organism normally lives",
+     "37 °C, for every organism",
+     "the boiling point of water",
+     "room temperature, about 20 °C"
+    ],
+    "a": 0,
+    "x": "Natural selection favours enzymes that work well in the organism's own conditions."
+   }
+  ]
+ },
+ {
+  "id": "p51",
+  "topic": "Activation energy",
+  "q": "In a reaction catalysed by an enzyme,",
+  "o": [
+   "the enzyme's structure is permanently changed",
+   "the rate rises in direct proportion to substrate concentration at all concentrations",
+   "the enzyme does not change the position of equilibrium",
+   "the rate is not affected by temperature"
+  ],
+  "a": 2,
+  "w": {
+   "0": "Enzymes are released unchanged.",
+   "1": "The rate levels off at high substrate concentrations (saturation).",
+   "3": "Enzyme-catalysed rates are very sensitive to temperature."
+  },
+  "x": "Enzymes speed up the forward and reverse reactions equally. Equilibrium is reached faster, but its position doesn't change.",
+  "s": [
+   {
+    "q": "An enzyme doesn't change ΔG. Can it change the final ratio of products to reactants at equilibrium?",
+    "o": [
+     "No, it doesn't change the equilibrium",
+     "Yes, it always increases the products",
+     "Yes, it always increases the reactants",
+     "Only at high temperatures"
+    ],
+    "a": 0,
+    "x": "The enzyme changes how fast equilibrium is reached, not where it lies."
+   }
+  ]
+ },
+ {
+  "id": "p52",
+  "topic": "Temperature and pH",
+  "q": "The rate of a reaction catalysed by an enzyme made of a single polypeptide chain",
+  "o": [
+   "does not depend on substrate concentration",
+   "can be raised or lowered by temperature",
+   "always increases as the pH rises",
+   "cannot be affected by any inhibitor"
+  ],
+  "a": 1,
+  "w": {
+   "0": "Below saturation, the rate depends strongly on substrate concentration.",
+   "2": "Each enzyme has an optimum pH. Above it, the rate falls.",
+   "3": "Competitive and non-competitive inhibitors also work on single-chain enzymes."
+  },
+  "x": "Below the optimum, raising the temperature speeds the reaction up; above it, the enzyme denatures and the rate falls. So a temperature change can do either.",
+  "s": [
+   {
+    "q": "Raising the temperature of a human enzyme from 20 °C to 30 °C will most likely",
+    "o": [
+     "increase the rate",
+     "decrease the rate",
+     "denature it",
+     "have no effect"
+    ],
+    "a": 0,
+    "x": "Both temperatures are below the optimum of about 37 °C."
+   }
+  ]
+ },
+ {
+  "id": "p53",
+  "topic": "Regulation",
+  "q": "Enzymes",
+  "o": [
+   "can be controlled by feedback",
+   "change the ΔG of the reaction",
+   "always need cofactors to work",
+   "don't affect activation energy"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Enzymes don't change ΔG.",
+   "2": "Some enzymes need cofactors, but many don't.",
+   "3": "Lowering activation energy is how enzymes work."
+  },
+  "x": "In feedback inhibition, the end product of a pathway inhibits an enzyme early in the pathway, so the pathway slows when product builds up.",
+  "s": [
+   {
+    "q": "In feedback inhibition, which molecule inhibits the enzyme?",
+    "o": [
+     "The substrate of the first step",
+     "The end product of the pathway",
+     "A molecule added by the experimenter",
+     "Water"
+    ],
+    "a": 1,
+    "x": "The end product 'feeds back' to switch off an early step."
+   }
+  ]
+ },
+ {
+  "id": "p54",
+  "topic": "Regulation",
+  "q": "In the reaction A + B → C + D, catalysed by enzyme X, product D inhibits enzyme X. What can you conclude?",
+  "o": [
+   "Enzyme X is an inhibitor of the whole reaction",
+   "D speeds up the reaction by positive feedback",
+   "D controls its own production by negative feedback",
+   "D is a coenzyme that helps enzyme X to work"
+  ],
+  "a": 2,
+  "w": {
+   "0": "X is the enzyme. It is being inhibited, not doing the inhibiting.",
+   "1": "D inhibits X, so it slows the reaction rather than speeding it up.",
+   "3": "A coenzyme helps the reaction happen. D does the opposite."
+  },
+  "x": "When a product inhibits the enzyme that makes it, more product means slower production: negative feedback (product inhibition). The question doesn't tell you whether D binds the active site or another site.",
+  "s": [
+   {
+    "q": "In negative feedback, an increase in product leads to",
+    "o": [
+     "more product being made",
+     "less product being made",
+     "no change",
+     "the enzyme being destroyed"
+    ],
+    "a": 1,
+    "x": "Negative feedback reverses the change, keeping product levels steady."
+   }
+  ]
+ },
+ {
+  "id": "p55",
+  "topic": "Enzyme basics",
+  "q": "Some enzymes have a non-protein part that is tightly and permanently bound to them. This is called a(n)",
+  "o": [
+   "prosthetic group",
+   "coenzyme that leaves after each reaction",
+   "substrate",
+   "inhibitor"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Coenzymes bind temporarily and leave, so they aren't permanently bound.",
+   "2": "Substrates bind briefly and are converted into products.",
+   "3": "Inhibitors reduce activity. A prosthetic group is needed for activity."
+  },
+  "x": "A prosthetic group is a permanently bound non-protein part, such as the haem group in catalase or the zinc ion in carbonic anhydrase.",
+  "s": [
+   {
+    "q": "Which of these is a prosthetic group?",
+    "o": [
+     "The haem group in catalase",
+     "Glucose bound to amylase",
+     "An amino acid in the chain",
+     "A water molecule in the site"
+    ],
+    "a": 0,
+    "x": "Haem is permanently bound and needed for catalase to work."
+   }
+  ]
+ },
+ {
+  "id": "p56",
+  "topic": "Enzyme basics",
+  "q": "Zinc ions that bind to enzymes and are needed for their activity are called",
+  "o": [
+   "substrates",
+   "cofactors",
+   "products",
+   "inhibitors"
+  ],
+  "a": 1,
+  "w": {
+   "0": "The enzyme doesn't convert zinc, so zinc isn't a substrate.",
+   "2": "Zinc isn't produced by the reaction.",
+   "3": "Zinc is needed for activity, so it isn't an inhibitor."
+  },
+  "x": "Cofactors are non-protein substances an enzyme needs in order to work. Inorganic ions such as Zn²⁺, Mg²⁺ and Cl⁻ (for amylase) are common examples.",
+  "s": [
+   {
+    "q": "Salivary amylase works much better when chloride ions are present. The chloride ions are acting as",
+    "o": [
+     "a cofactor",
+     "a substrate",
+     "a competitive inhibitor",
+     "a product"
+    ],
+    "a": 0,
+    "x": "Cl⁻ helps amylase's active site take the right shape."
+   }
+  ]
+ },
+ {
+  "id": "p57",
+  "topic": "Regulation",
+  "q": "Reactions in cells are organised into _______, in which the product of one reaction is the substrate of the next.",
+  "o": [
+   "metabolic pathways",
+   "induced fits",
+   "allosteric sites",
+   "active sites"
+  ],
+  "a": 0,
+  "w": {
+   "1": "Induced fit describes a shape change in a single enzyme.",
+   "2": "Allosteric sites are regulatory sites on an enzyme.",
+   "3": "An active site is part of a single enzyme."
+  },
+  "x": "In a pathway such as A → B → C → D, each step has its own enzyme. Controlling one key enzyme can regulate the whole pathway.",
+  "s": [
+   {
+    "q": "In the pathway A → B → C, what is B?",
+    "o": [
+     "Only a product of step 1",
+     "A product and a substrate",
+     "An enzyme for step 2",
+     "An inhibitor of step 1"
+    ],
+    "a": 1,
+    "x": "Intermediates like B link one step to the next."
+   }
+  ]
+ },
+ {
+  "id": "p58",
+  "topic": "Temperature and pH",
+  "q": "Pepsin works in the strongly acidic stomach. At that pH, what form will most carboxyl groups in its R groups take?",
+  "o": [
+   "–COO⁻",
+   "–COOH",
+   "–NH₃⁺",
+   "–OH"
+  ],
+  "a": 1,
+  "w": {
+   "0": "–COO⁻ forms when H⁺ is removed. That happens at neutral or high pH, not in strong acid.",
+   "2": "That is an amino group, not a carboxyl group.",
+   "3": "That is a hydroxyl group, not a carboxyl group."
+  },
+  "x": "In strong acid the H⁺ concentration is high, so carboxyl groups keep their H⁺ (–COOH, uncharged). Pepsin's active site is adapted to work in this form, while most other enzymes stop working at pH 2.",
+  "s": [
+   {
+    "q": "What does a high concentration of H⁺ ions do to a –COO⁻ group?",
+    "o": [
+     "It removes more H⁺",
+     "It adds H⁺, giving –COOH",
+     "It turns it into an –NH₂ group",
+     "It has no effect"
+    ],
+    "a": 1,
+    "x": "With lots of H⁺ around, –COO⁻ picks one up."
+   }
+  ]
+ },
+ {
+  "id": "p59",
+  "topic": "Activation energy",
+  "q": "Which of these is NOT a way that enzymes help reactions happen?",
+  "o": [
+   "Holding substrates close together in the right orientation",
+   "Putting strain on bonds in the substrate",
+   "Temporarily adding chemical groups to the substrate",
+   "Giving the substrate extra kinetic energy"
+  ],
+  "a": 3,
+  "w": {
+   "0": "This does happen. Bringing substrates together in the right orientation makes a reaction more likely.",
+   "1": "This does happen. Strained bonds break more easily.",
+   "2": "This does happen. Some enzymes briefly transfer chemical groups to the substrate."
+  },
+  "x": "Enzymes don't add energy. They lower the activation energy by orienting, straining and chemically assisting their substrates.",
+  "s": [
+   {
+    "q": "Do enzymes provide energy for the reactions they catalyse?",
+    "o": [
+     "Yes, from ATP every time",
+     "No, they lower the energy needed",
+     "Yes, as heat",
+     "Only for energy-releasing reactions"
+    ],
+    "a": 1,
+    "x": "Enzymes lower the barrier rather than supplying energy to climb it."
+   }
+  ]
+ },
+ {
+  "id": "p60",
+  "topic": "Active site and specificity",
+  "q": "An enzyme converts substrate A into product B. Which molecule would be most likely to be acted on by this enzyme as well?",
+  "o": [
+   "One with the same overall charge as A",
+   "One with the same molecular mass as A",
+   "One with the same number of carbon atoms as A",
+   "One with the same 3D shape and charges as A"
+  ],
+  "a": 3,
+  "w": {
+   "0": "Charge matters, but so does shape.",
+   "1": "Two molecules can have the same mass but very different shapes.",
+   "2": "The same number of carbon atoms can be arranged into many different shapes."
+  },
+  "x": "Binding needs a complementary fit in both shape and the pattern of charges. A molecule that matches A on both is the most likely to fit.",
+  "s": [
+   {
+    "q": "Which property matters most for a molecule to fit an active site?",
+    "o": [
+     "Its molecular mass",
+     "A complementary shape",
+     "Its colour",
+     "Its number of oxygen atoms"
+    ],
+    "a": 1,
+    "x": "The active site recognises shape and charge, not mass."
+   }
+  ]
+ }
+];
+
+const IMGS = {};
+const IMGW = {"energy": 360, "hb": 640, "shapes": 300, "path1": 430, "path2": 380, "ph": 500, "sat": 440, "temp": 360};
+
+const CONFIG = {"mode": "pool", "setSize": 15, "storageKey": "enzyme-pool-v1", "cheers": ["Correct.", "That's right.", "Yes, well done.", "Spot on."], "introTitle": "15 questions from a bank of 60", "intro": "A random set covering enzyme basics, the active site, activation energy, rates, inhibitors, temperature and pH, and regulation. You can take a new set as often as you like: questions you haven't seen come first, then the ones you found hardest."};
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const LET = ["A", "B", "C", "D", "E"];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = n => (n % 1 ? Math.floor(n) + "½" : String(n)).replace(/^0½$/, "½");
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const store = {
+  read() { try { return JSON.parse(localStorage.getItem(CONFIG.storageKey) || "null") || { seen: {}, sets: 0 }; } catch (e) { return { seen: {}, sets: 0 }; } },
+  write(v) { try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(v)); } catch (e) {} }
+};
+
+let S = null; // session state
+
+/* Balanced answer positions: correct answers are dealt from a shuffled deck of A-D,
+   so each letter comes up equally often and never more than twice in a row. */
+function deal(bagName, n, allowed) {
+  const bag = S[bagName], hist = S[bagName + "Hist"] || (S[bagName + "Hist"] = []);
+  const ok = t => t < n && (!allowed || allowed.includes(t)) && !(hist.length >= 2 && hist[hist.length - 1] === t && hist[hist.length - 2] === t);
+  let k = -1;
+  for (let tries = 0; tries < 3 && k < 0; tries++) {
+    for (let j = bag.length - 1; j >= 0; j--) if (ok(bag[j])) { k = j; break; }
+    if (k < 0) bag.unshift(...shuffle([0, 1, 2, 3]));
+  }
+  const t = k >= 0 ? bag.splice(k, 1)[0] : (allowed ? allowed[0] : Math.floor(Math.random() * n));
+  hist.push(t); return t;
+}
+/* Build a display order putting the correct option at position t. Ordered options
+   (pH values, enzyme letters) are shown ascending or descending instead of shuffled. */
+function orderFor(n, correct, t, fixed) {
+  const idx = [...Array(n).keys()];
+  if (fixed) { const desc = idx.slice().reverse(); if (n - 1 - correct === t) return desc; if (correct === t) return idx; return Math.random() < 0.5 ? idx : desc; }
+  const rest = shuffle(idx.filter(i => i !== correct));
+  rest.splice(t, 0, correct); return rest;
+}
+
+function figHTML(key) {
+  const f = FIGS[key]; if (!f) return "";
+  if (f.html) return `<figure class="fig">${f.html}</figure>`;
+  return `<figure class="fig"><img src="${IMGS[f.img]}" alt="${esc(f.alt)}" style="width:${IMGW[f.img] || 420}px">${f.cap ? `<p class="fig-cap">${esc(f.cap)}</p>` : ""}</figure>`;
+}
+
+/* ---------- Building a set ---------- */
+function pickSet(onlyIds) {
+  if (onlyIds) return QUESTIONS.filter(q => onlyIds.includes(q.id));
+  if (CONFIG.mode === "fixed") return QUESTIONS.slice();
+  const seen = store.read().seen;
+  const fresh = shuffle(QUESTIONS.filter(q => !seen[q.id]));
+  const rank = { miss: 0, help: 1, first: 2 };
+  const old = shuffle(QUESTIONS.filter(q => seen[q.id])).sort((a, b) => rank[seen[a.id]] - rank[seen[b.id]]);
+  return fresh.concat(old).slice(0, CONFIG.setSize);
+}
+
+function start(onlyIds) {
+  const set = pickSet(onlyIds);
+  S = { set, i: 0, results: [], points: 0, phase: "main", step: 0, first: null, order: null, retried: !!onlyIds, mainBag: [], stepBag: [] };
+  if (CONFIG.mode === "pool" && !onlyIds) { const st = store.read(); st.sets = (st.sets || 0) + 1; store.write(st); }
+  $("#scorebox").hidden = false; $("#strip").hidden = false;
+  $("#qtot").textContent = set.length;
+  renderStrip(); showQuestion();
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+}
+
+function renderStrip() {
+  $("#strip").innerHTML = S.set.map((q, k) => `<span class="${S.results[k] || (k === S.i ? "now" : "")}"></span>`).join("");
+  $("#qpos").textContent = Math.min(S.i + 1, S.set.length);
+  $("#score").textContent = fmt(S.points);
+}
+
+/* ---------- Question screens ---------- */
+function layout() {
+  $("#app").innerHTML = `<div class="grid">
+    <section class="card qcard" id="qcard" aria-live="polite"></section>
+    <aside class="card tutor"><h2>Feedback</h2><div class="log" id="log" aria-live="polite"></div><div class="actions" id="actions"></div></aside>
+  </div>`;
+}
+
+function showQuestion() {
+  layout();
+  const q = cur();
+  S.phase = "main"; S.step = 0; S.first = null; S.order = orderFor(4, q.a, deal("mainBag", 4, q.fixed ? [q.a, 3 - q.a] : null), q.fixed);
+  addMsg("idle", "", CONFIG.mode === "fixed" ? "Study the figure, then choose an answer. If it isn't right, you'll get feedback and one or two check-up questions before trying again." : "Choose an answer. If it isn't right, you'll get feedback and a check-up question before trying again.");
+  drawCard();
+}
+
+const cur = () => S.set[S.i];
+
+function trailHTML() {
+  if (S.phase === "main") return "";
+  const q = cur(), n = q.s.length, parts = [`<b class="done">Question</b>`];
+  for (let k = 0; k < n; k++) parts.push(`<b class="${S.phase === "step" && S.step === k ? "on" : (S.phase === "retry" || S.step > k ? "done" : "")}">Check-up ${k + 1}</b>`);
+  parts.push(`<b class="${S.phase === "retry" ? "on" : ""}">Second try</b>`);
+  return `<div class="trail" aria-label="Your route through this question">${parts.join("<i>→</i>")}</div>`;
+}
+
+function drawCard() {
+  const q = cur();
+  let label, cls, stem, opts, order;
+  if (S.phase === "step") {
+    const s = q.s[S.step];
+    label = `Check-up ${S.step + 1} of ${q.s.length}`; cls = "step"; stem = s.q; opts = s.o; order = S.stepOrder;
+  } else {
+    label = S.phase === "retry" ? `Second try · Question ${S.i + 1}` : `Question ${S.i + 1}`;
+    cls = S.phase === "retry" ? "retry" : ""; stem = q.q; opts = q.o; order = S.order;
+  }
+  $("#qcard").innerHTML = `
+    <div class="qhead"><span class="stage ${cls}">${label}</span><span class="topic">${esc(q.topic)}</span></div>
+    ${trailHTML()}
+    ${q.fig ? figHTML(q.fig) : ""}
+    <p class="stem">${esc(stem)}</p>
+    <div class="opts" id="opts">${order.map((oi, pos) => `<button class="opt" data-oi="${oi}" id="opt-${pos}"><span class="k">${LET[pos]}</span><span>${esc(opts[oi])}</span><span class="mark"></span></button>`).join("")}</div>
+    <p class="keys">Tip: press A–D (or 1–4) to answer, and Enter to continue.</p>`;
+  $("#opts").querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => choose(+b.dataset.oi)));
+  setActions([]);
+}
+
+function letterOf(oi) { const order = S.phase === "step" ? S.stepOrder : S.order; return LET[order.indexOf(oi)]; }
+function prepStep() { const s = cur().s[S.step], n = s.o.length; S.stepOrder = orderFor(n, s.a, deal("stepBag", n, s.fixed ? [s.a, n - 1 - s.a] : null), s.fixed); }
+function retryOrder(q) {
+  const was = S.order.indexOf(q.a);
+  if (q.fixed) { const flip = S.order.slice().reverse(); return flip.indexOf(q.a) !== was ? flip : S.order; }
+  const t = shuffle([0, 1, 2, 3].filter(p => p !== was))[0];
+  return orderFor(4, q.a, t, false);
+}
+
+function lockOptions(chosen, correct, revealCorrect) {
+  $("#opts").querySelectorAll(".opt").forEach(b => {
+    const oi = +b.dataset.oi; b.disabled = true;
+    if (oi === chosen && chosen === correct) { b.classList.add("right"); b.querySelector(".mark").textContent = "Correct"; }
+    else if (oi === chosen) { b.classList.add("wrong"); b.querySelector(".mark").textContent = "Your answer"; }
+    else if (oi === correct && revealCorrect) { b.classList.add("right"); b.querySelector(".mark").textContent = "Answer"; }
+    else b.classList.add("dim");
+  });
+}
+
+function choose(oi) {
+  const q = cur();
+  if (S.phase === "step") {
+    const s = q.s[S.step], ok = oi === s.a;
+    lockOptions(oi, s.a, true);
+    addMsg(ok ? "good" : "bad", ok ? `Check-up ${S.step + 1}: correct` : `Check-up ${S.step + 1}: the answer is ${letterOf(s.a)}`, s.x);
+    const last = S.step === q.s.length - 1;
+    setActions([{ label: last ? "Try the question again" : `Check-up ${S.step + 2}`, go: () => { if (last) { S.phase = "retry"; const before = S.order.join(); S.order = retryOrder(q); addMsg("hint", "Second try", S.order.join() !== before ? "The options have been reordered, so read them again. Use what the check-ups showed you." : "Use what the check-ups showed you."); } else { S.step++; prepStep(); } drawCard(); focusFirst(); } }]);
+    return;
+  }
+  const ok = oi === q.a;
+  if (S.phase === "main") {
+    if (ok) {
+      lockOptions(oi, q.a, false); finish("first", 1);
+      addMsg("good", CONFIG.cheers[Math.floor(Math.random() * CONFIG.cheers.length)], q.x);
+    } else {
+      S.first = oi; lockOptions(oi, q.a, false);
+      addMsg("bad", `Not quite: ${letterOf(oi)} isn't right`, q.w[oi] || "That isn't the right answer.");
+      const n = q.s.length;
+      addMsg("hint", "Build up to it", n > 1 ? `Answer ${n} quick check-up questions on the idea behind this one, then try it again.` : "Answer one quick check-up question on the idea behind this one, then try it again.");
+      setActions([{ label: "Start the check-up", go: () => { S.phase = "step"; S.step = 0; prepStep(); drawCard(); focusFirst(); } }]);
+    }
+    return;
+  }
+  // retry
+  lockOptions(oi, q.a, true);
+  if (ok) { finish("help", 0.5); addMsg("good", "Got it on the second try", q.x); }
+  else { finish("miss", 0); addMsg("bad", `Not this time. The answer is ${letterOf(q.a)}`, (q.w[oi] ? q.w[oi] + "\n" : "") + q.x); }
+}
+
+function finish(result, pts) {
+  S.results[S.i] = result; S.points += pts;
+  if (CONFIG.mode === "pool") { const st = store.read(); st.seen[cur().id] = result; store.write(st); }
+  renderStrip();
+  const last = S.i === S.set.length - 1;
+  setActions([{ label: last ? "See my results" : "Next question", go: () => { if (last) showEnd(); else { S.i++; renderStrip(); showQuestion(); scrollTopCard(); focusFirst(); } } }]);
+}
+
+function addMsg(kind, title, text) {
+  const log = $("#log");
+  if (kind !== "idle") log.querySelectorAll(".msg.idle").forEach(m => m.remove());
+  const d = document.createElement("div");
+  d.className = "msg " + kind;
+  d.innerHTML = (title ? `<h3>${esc(title)}</h3>` : "") + String(text).split("\n").map(t => `<p>${esc(t)}</p>`).join("");
+  log.appendChild(d);
+  if (kind !== "idle" && window.innerWidth <= 860) d.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+}
+
+function setActions(list) {
+  const a = $("#actions"); a.innerHTML = "";
+  list.forEach((it, k) => { const b = document.createElement("button"); b.className = "btn" + (it.ghost ? " ghost" : ""); b.textContent = it.label; b.addEventListener("click", it.go); a.appendChild(b); if (k === 0) setTimeout(() => b.focus({ preventScroll: true }), 0); });
+}
+function focusFirst() { const b = $("#opt-0"); if (b) b.focus({ preventScroll: true }); }
+function scrollTopCard() { const c = $("#qcard"); if (c && c.getBoundingClientRect().top < 0) c.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" }); }
+
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toUpperCase();
+  const idx = "ABCD".indexOf(k) >= 0 ? "ABCD".indexOf(k) : "1234".indexOf(k);
+  if (idx >= 0 && k.length === 1) { const b = $("#opt-" + idx); if (b && !b.disabled) { e.preventDefault(); b.click(); } }
+});
+
+/* ---------- Start + end screens ---------- */
+function showIntro() {
+  $("#scorebox").hidden = true; $("#strip").hidden = true;
+  let extra = "";
+  if (CONFIG.mode === "pool") {
+    const st = store.read(), seenN = Object.keys(st.seen).filter(id => QUESTIONS.some(q => q.id === id)).length, left = QUESTIONS.length - seenN;
+    extra = seenN ? `<p class="note">On this device you've answered ${seenN} of the ${QUESTIONS.length} questions. ${left >= CONFIG.setSize ? `Your next set will be ${CONFIG.setSize} you haven't seen yet.` : left > 0 ? `Your next set has the ${left} you haven't seen yet, topped up with ones you found hardest.` : "Your next set will focus on the ones you found hardest."} <button class="linkbtn" id="reset">Forget my progress</button></p>`
+      : `<p class="note">Each set is ${CONFIG.setSize} questions drawn from a bank of ${QUESTIONS.length}. New sets give you questions you haven't seen first.</p>`;
+  }
+  $("#app").innerHTML = `<div class="intro">
+    <section class="card"><h2 class="sec">${esc(CONFIG.introTitle)}</h2><p>${esc(CONFIG.intro)}</p>${extra}
+      <div class="actions" style="margin-top:14px"><button class="btn" id="go">${CONFIG.mode === "pool" ? "Start a set of " + Math.min(CONFIG.setSize, QUESTIONS.length) : "Start the quiz"}</button></div></section>
+    <aside class="card"><h2 class="sec">How it works</h2>
+      <ol class="how">
+        <li><span>Answer the question. A correct first answer scores 1 mark.</span></li>
+        <li><span>If you're wrong, you'll see why your answer doesn't work, then one or two check-up questions on the idea behind it.</span></li>
+        <li><span>Then you get a second try at the original question. Getting it right now scores ½ mark.</span></li>
+      </ol>
+      <div class="marks" style="margin-top:16px">
+        <span class="sw" style="background:var(--good)"></span><span>Correct first time</span>
+        <span class="sw" style="background:var(--hint)"></span><span>Correct after the check-up</span>
+        <span class="sw" style="background:var(--bad)"></span><span>Still not right: worth revising</span>
+      </div>
+    </aside></div>`;
+  $("#go").addEventListener("click", () => start());
+  const r = $("#reset"); if (r) r.addEventListener("click", () => { store.write({ seen: {}, sets: 0 }); showIntro(); });
+}
+
+function showEnd() {
+  const n = S.set.length, c = { first: 0, help: 0, miss: 0 };
+  S.results.forEach(r => c[r]++);
+  const topics = {};
+  S.set.forEach((q, k) => { const t = topics[q.topic] || (topics[q.topic] = { first: 0, help: 0, miss: 0 }); t[S.results[k]]++; });
+  const weak = S.set.map((q, k) => ({ q, r: S.results[k] })).filter(x => x.r !== "first");
+  const pct = Math.round(S.points / n * 100);
+  $("#strip").innerHTML = S.set.map((q, k) => `<span class="${S.results[k]}"></span>`).join("");
+  $("#qpos").textContent = n;
+  let poolNote = "";
+  if (CONFIG.mode === "pool") {
+    const st = store.read(), left = QUESTIONS.filter(q => !st.seen[q.id]).length;
+    poolNote = `<p class="note">${left ? `${left} questions in the bank are still new to you.` : "You've now seen every question in the bank. New sets will focus on the ones you found hardest."}</p>`;
+  }
+  $("#app").innerHTML = `<div class="grid">
+    <section class="card" style="display:flex;flex-direction:column;gap:16px">
+      <div class="eyebrow">Results</div>
+      <div class="big">${fmt(S.points)}<small> / ${n} · ${pct}%</small></div>
+      <div class="tally">
+        <div class="t1"><b>${c.first}</b><span>right first time</span></div>
+        <div class="t2"><b>${c.help}</b><span>right after help</span></div>
+        <div class="t3"><b>${c.miss}</b><span>to revise</span></div>
+      </div>
+      ${poolNote}
+      <div class="actions">
+        ${CONFIG.mode === "pool" ? `<button class="btn" id="again">Start a new set</button>` : `<button class="btn" id="again">Start again</button>`}
+        ${weak.length ? `<button class="btn ghost" id="weak">Redo the ${weak.length} I didn't get first time</button>` : ""}
+      </div>
+      <div><h2 class="sec">By topic</h2>
+        <table class="topics"><thead><tr><th>Topic</th><th class="n">First time</th><th class="n">After help</th><th class="n">To revise</th></tr></thead>
+        <tbody>${Object.entries(topics).map(([t, v]) => `<tr><td>${esc(t)}</td><td class="n">${v.first}</td><td class="n">${v.help}</td><td class="n">${v.miss}</td></tr>`).join("")}</tbody></table></div>
+    </section>
+    <aside class="card"><h2 class="sec">Review</h2>
+      ${weak.length ? `<div class="review">${weak.map(({ q, r }) => `<details><summary><span class="tag ${r}">${r === "help" ? "After help" : "Revise"}</span><span>${esc(q.q)}</span></summary><p class="ans">Answer: ${esc(q.o[q.a])}</p><p>${esc(q.x)}</p></details>`).join("")}</div>` : `<p>You got every question right first time. Nothing to review.</p>`}
+    </aside></div>`;
+  $("#again").addEventListener("click", () => CONFIG.mode === "pool" ? showIntro() : start());
+  const w = $("#weak"); if (w) w.addEventListener("click", () => start(weak.map(x => x.q.id)));
+  window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+}
+
+showIntro();
+</script>
